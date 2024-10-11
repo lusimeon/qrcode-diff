@@ -3,14 +3,20 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class AnalyzeImageFromGalleryButton extends StatelessWidget {
-  const AnalyzeImageFromGalleryButton({required this.controller, super.key});
+  const AnalyzeImageFromGalleryButton({
+    super.key,
+    required this.controller,
+    this.color = Colors.white,
+  });
+
+  final Color color;
 
   final MobileScannerController controller;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      color: Colors.white,
+      color: color,
       icon: const Icon(Icons.image),
       iconSize: 32.0,
       onPressed: () async {

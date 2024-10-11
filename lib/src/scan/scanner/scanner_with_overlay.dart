@@ -5,7 +5,16 @@ import 'package:qrcode_diff/src/scan/scanner/scanner_flashlight_view.dart';
 import 'package:qrcode_diff/src/scan/scanner/scanner_error_view.dart';
 
 class ScannerWithOverlay extends StatefulWidget {
-  const ScannerWithOverlay({super.key, required this.successCallback});
+  const ScannerWithOverlay({
+    super.key,
+    required this.successCallback,
+    this.backgroundColor = Colors.white,
+    this.borderColor = Colors.black,
+  });
+
+  final Color backgroundColor;
+
+  final Color borderColor;
 
   final Function(Barcode?) successCallback;
 
@@ -13,19 +22,35 @@ class ScannerWithOverlay extends StatefulWidget {
   ScannerWithOverlayState createState() => ScannerWithOverlayState();
 }
 
-class ScannerWithOverlayState extends State<ScannerWithOverlay> {
-  final MobileScannerController controller = MobileScannerController(
+class ScannerWithOverlayState extends State<ScannerWithOverlay> with SingleTickerProviderStateMixin {
+  bool _handled = false;
+
+  late Animation<Color?> _successColorTween;
+
+  late AnimationController _successAnimationController;
+
+  final MobileScannerController _scannerController = MobileScannerController(
     formats: const [BarcodeFormat.qrCode],
-    torchEnabled: false,
-    returnImage: false,
   );
 
-  void _handleBarcode(BarcodeCapture barcodes) {
-    if (!mounted || null == barcodes.raw) {
-      return;
-    }
+  @override
+  void initState() {
+    _successAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300)
+    );
 
-    widget.successCallback(barcodes.barcodes.firstOrNull);
+    _successColorTween = ColorTween(begin: widget.borderColor, end: Colors.green)
+      .animate(_successAnimationController)
+      ..addListener(() {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {});
+      });
+
+    super.initState();
   }
 
   @override
@@ -35,7 +60,7 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> {
     final scanWindow = Rect.fromCenter(
       width: size.width * 0.75,
       height: size.width * 0.75,
-      center: size.center(Offset.zero),
+      center: Offset(size.width / 2, size.height / 3.5),
     );
 
     return Stack(
@@ -44,8 +69,9 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> {
         Center(
           child: MobileScanner(
             fit: BoxFit.contain,
-            controller: controller,
+            controller: _scannerController,
             scanWindow: scanWindow,
+            scanWindowUpdateThreshold: 0.5,
             errorBuilder: (context, error, child) {
               return ScannerErrorWidget(error: error);
             },
@@ -53,7 +79,7 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> {
           ),
         ),
         ValueListenableBuilder(
-          valueListenable: controller,
+          valueListenable: _scannerController,
           builder: (context, value, child) {
             if (!value.isInitialized ||
                 !value.isRunning ||
@@ -62,7 +88,11 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> {
             }
 
             return CustomPaint(
-              painter: ScannerOverlay(scanWindow: scanWindow),
+              painter: ScannerOverlay(
+                scanWindow: scanWindow,
+                backgroundColor: widget.backgroundColor,
+                borderColor: _successColorTween.value ?? widget.borderColor,
+              ),
             );
           },
         ),
@@ -73,8 +103,8 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ToggleFlashlightButton(controller: controller),
-                AnalyzeImageFromGalleryButton(controller: controller),
+                ToggleFlashlightButton(controller: _scannerController, color: widget.borderColor),
+                AnalyzeImageFromGalleryButton(controller: _scannerController, color: widget.borderColor),
               ],
             ),
           ),
@@ -86,22 +116,48 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> {
   @override
   Future<void> dispose() async {
     super.dispose();
-    await controller.dispose();
+    _successAnimationController.dispose();
+    await _scannerController.dispose();
+  }
+
+  void _handleBarcode(BarcodeCapture barcodes) {
+    if (_handled) {
+      return;
+    }
+
+    if (!mounted || null == barcodes.raw) {
+      return;
+    }
+
+    setState(() {
+      _handled = true;
+    });
+
+    _successAnimationController.repeat(reverse: true);
+
+    Future.delayed(const Duration(seconds: 1), () {
+      _successAnimationController.stop();
+      widget.successCallback(barcodes.barcodes.firstOrNull);
+    });
   }
 }
 
 class ScannerOverlay extends CustomPainter {
   const ScannerOverlay({
     required this.scanWindow,
+    required this.backgroundColor,
+    required this.borderColor,
     this.borderRadius = 12.0,
   });
 
   final Rect scanWindow;
   final double borderRadius;
+  final Color borderColor;
+  final Color backgroundColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final backgroundPath = Path()..addRect(Rect.largest);
+    final backgroundPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     final cutoutPath = Path()
       ..addRRect(
@@ -115,9 +171,8 @@ class ScannerOverlay extends CustomPainter {
       );
 
     final backgroundPaint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill
-      ..blendMode = BlendMode.dstOut;
+      ..color = backgroundColor
+      ..style = PaintingStyle.fill;
 
     final backgroundWithCutout = Path.combine(
       PathOperation.difference,
@@ -126,9 +181,9 @@ class ScannerOverlay extends CustomPainter {
     );
 
     final borderPaint = Paint()
-      ..color = Colors.white
+      ..color = borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0;
+      ..strokeWidth = 6.0;
 
     final borderRect = RRect.fromRectAndCorners(
       scanWindow,
@@ -144,7 +199,6 @@ class ScannerOverlay extends CustomPainter {
 
   @override
   bool shouldRepaint(ScannerOverlay oldDelegate) {
-    return scanWindow != oldDelegate.scanWindow ||
-        borderRadius != oldDelegate.borderRadius;
+    return true;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qrcode_diff/src/scan/scan_result_view.dart';
 import 'package:qrcode_diff/src/scan/scan_source_view.dart';
 import 'package:qrcode_diff/src/scan/scan_target_view.dart';
 
@@ -13,6 +14,8 @@ class ScanView extends StatefulWidget {
 }
 
 class ScanViewState extends State<ScanView> {
+  List<GlobalKey<FormState>> _formKeys = [];
+
   int _currentStep = 0;
 
   String? _source;
@@ -27,20 +30,27 @@ class ScanViewState extends State<ScanView> {
         steps: getSteps(),
         type: StepperType.horizontal,
         currentStep: _currentStep,
+        onStepContinue: () => goToStep(_currentStep += 1),
+        onStepTapped: (step) => goToStep(step),
         controlsBuilder: (context, ControlsDetails details) {
           return const Row(
             children: [],
           );
         },
-        onStepTapped: (step) => setState(() {
-          _currentStep = step;
-        }),
       ),
     );
   }
 
   void goToStep(int step) {
-    if (step == 0 || step > getSteps().length - 1) {
+    if (step < 0 || step > getSteps().length - 1) {
+      return;
+    }
+
+    if (step == 1 && _source == null) {
+      return;
+    }
+
+    if (step == 2 && (_source == null || _target == null)) {
       return;
     }
 
@@ -73,7 +83,6 @@ class ScanViewState extends State<ScanView> {
         isActive: _currentStep >= 0,
         title: const Text('Source'),
         content: ScanSourceView(
-          value: _source,
           successCallback: (Barcode? barcode) => setSource(barcode?.displayValue),
         ),
       ),
@@ -82,7 +91,6 @@ class ScanViewState extends State<ScanView> {
         isActive: _currentStep >= 1,
         title: const Text('Target'),
         content: ScanTargetView(
-          value: _target,
           scanSuccessCallback: (Barcode? barcode) => setTarget(barcode?.displayValue),
           formSuccessCallback: (Barcode? barcode) => setTarget(barcode?.displayValue),
         ),
@@ -91,12 +99,9 @@ class ScanViewState extends State<ScanView> {
         state: _currentStep > 2 ? StepState.complete : StepState.indexed,
         isActive: _currentStep >= 2,
         title: const Text('Result'),
-        content: Column(
-          children: [
-            Text('Source: $_source'),
-            Text('Target: $_target'),
-            Text(_target == _source ? 'Same' : 'Not same'),
-          ],
+        content: ScanResultView(
+          source: _source ?? '',
+          target: _target ?? '',
         ),
       ),
     ];

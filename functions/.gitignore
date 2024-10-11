@@ -1,0 +1,4 @@
+*.local
+/venv
+ui-debug.log
+__pycache__
