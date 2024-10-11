@@ -1,0 +1,6 @@
+{
+  "appTitle": "qrcode_diff",
+  "@appTitle": {
+    "description": "QR code diff generator"
+  }
+}
