@@ -2,6 +2,8 @@
 
 QR code diff generator.
 
+![QR code diff logo](https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/logo.jpg)
+
 ## Getting Started
 
 ```bash
