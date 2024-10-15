@@ -1,6 +1,6 @@
 # QR code diff
 
-QR code diff generator.
+A mobile application to generate diff between two QR codes.
 
 ![QR code diff logo](https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/logo.jpg)
 
