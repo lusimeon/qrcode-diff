@@ -22,7 +22,6 @@
 /packages/flutter/coverage/
 version
 
-
 # Flutter/Dart/Pub related
 **/doc/api/
 .dart_tool/
@@ -36,6 +35,12 @@ linked_*.ds
 unlinked.ds
 unlinked_spec.ds
 .flutter-plugins-dependencies
+
+# Ignored platforms
+/linux
+/macos
+/windows
+/web
 
 # Android related
 **/android/**/gradle-wrapper.jar
