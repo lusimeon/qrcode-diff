@@ -7,12 +7,15 @@ QR code diff generator.
 ## Getting Started
 
 ```bash
-flutterfire configure
 python3.12 -m venv ./functions/venv/
 source ./functions/venv/bin/activate
 pip install -r ./functions/requirements.txt
-firebase emulators:start --only functions # emulate firebase server (for dev env)
 
+flutterfire configure # Configure firebase options.
+firebase emulators:start --only functions # Emulate firebase server (for dev env).
+
+flutter doctor -v
+flutter clean
 flutter pub get
-flutter run
+flutter run --dart-define=EMULATOR_HOST="127.0.0.1" --dart-define=FUNCTIONS_EMULATOR_PORT="5001"
 ```

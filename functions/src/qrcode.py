@@ -4,24 +4,26 @@ from PIL import Image, ImageChops
 from flask import send_file
 import qrcode
 from io import BytesIO
+import base64
 
 app = initialize_app()
 
 
-@https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"])
-)
-def generate_diff(req: https_fn.Request) -> https_fn.Response:
+@https_fn.on_call()
+def generate_diff(req: https_fn.CallableRequest) -> https_fn.Response:
     """Take the text parameter passed to this HTTP endpoint and insert it into
     a new document in the messages collection."""
-    if 'source' not in req.form or 'target' not in req.form:
-        return https_fn.Response(status=400)
+    if 'source' not in req.data or 'target' not in req.data:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message='`source` and `target` data must be passed.'
+        )
 
     img_io = BytesIO()
-    source = _make_qrcode_from_string(req.form['source'])
-    target = _make_qrcode_from_string(req.form['target'])
+    source = _make_qrcode_from_string(req.data['source'])
+    target = _make_qrcode_from_string(req.data['target'])
 
-    if 'highlight' == req.args.get('output'):
+    if 'highlight' == req.data.get('output'):
         diff = _make_image_from_difference_highlighted(source, target)
     else:
         diff = _make_image_from_difference(source, target)
@@ -30,13 +32,14 @@ def generate_diff(req: https_fn.Request) -> https_fn.Response:
     img_io.seek(0)
 
     if diff.getbbox() is None:
-        return https_fn.Response(status=204)
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.OK,
+            message='No difference found between the two images.'
+        )
 
-    return send_file(
-        img_io,
-        as_attachment=False,
-        download_name='qrcode_diff.jpg'
-    )
+    return {
+        'imageBase64': base64.b64encode(s=img_io.getvalue(), altchars=b'-_').decode()
+    }
 
 
 def _make_qrcode_from_string(data: str) -> Image:

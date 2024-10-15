@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qrcode_diff/src/global/modal_bottom_view.dart';
-import 'package:qrcode_diff/src/scan/scanner/scanner_with_overlay.dart';
+import 'package:qrcode_diff/src/scan/scanner/scanner_with_overlay_view.dart';
 
 class ScanSourceView extends StatelessWidget {
   const ScanSourceView({
     super.key,
-    required this.successCallback,
+    required this.scanSuccessCallback,
   });
 
-  final Function(Barcode?) successCallback;
+  final Function(String) scanSuccessCallback;
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +37,15 @@ class ScanSourceView extends StatelessWidget {
                         body: ScannerWithOverlay(
                           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
                           successCallback: (Barcode? barcode) {
-                            successCallback(barcode);
+                            final value = barcode?.displayValue;
+
+                            if (value == null) {
+                              return;
+                            }
+
                             Navigator.pop(context);
+
+                            scanSuccessCallback(value);
                           },
                         )
                       ),

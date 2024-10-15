@@ -1,27 +1,17 @@
-import 'package:flutter/material.dart';
+class ScanModel {
+  ScanModel({
+    this.source,
+    this.target,
+  });
 
-class ScanModel with ChangeNotifier {
-  ScanModel();
+  String? source, target;
 
-  late String? _source;
+  bool get isReady => source != null && target != null;
 
-  late String? _target;
-
-  String? get result => _target;
-
-  void setSource(String? source) {
-    if (source == _source) return;
-
-    _source = source;
-
-    notifyListeners();
-  }
-
-  void setTarget(String? target) {
-    if (target == _target) return;
-
-    _target = target;
-
-    notifyListeners();
+  factory ScanModel.fromJson(Map<String, String> json) {
+    return ScanModel(
+      target: json['target'],
+      source: json['source'],
+    );
   }
 }

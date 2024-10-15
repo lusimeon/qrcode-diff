@@ -1,109 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qrcode_diff/src/scan/scan_controller.dart';
 import 'package:qrcode_diff/src/scan/scan_result_view.dart';
 import 'package:qrcode_diff/src/scan/scan_source_view.dart';
 import 'package:qrcode_diff/src/scan/scan_target_view.dart';
 
 class ScanView extends StatefulWidget {
-  const ScanView({super.key});
+  const ScanView({super.key, required this.controller});
 
   static const routeName = '/scan';
 
+  final ScanController controller;
+
   @override
-  ScanViewState createState() => ScanViewState();
+  ScanViewState createState() {
+    return ScanViewState();
+  }
 }
 
 class ScanViewState extends State<ScanView> {
-  List<GlobalKey<FormState>> _formKeys = [];
+  int _stepIndex = 0;
 
-  int _currentStep = 0;
+  void goToStep(int value) {
+    if (value == 1 && widget.controller.scan.source == null) {
+      return;
+    }
 
-  String? _source;
+    if (value == 2 && !widget.controller.canGenerateDiff) {
+      return;
+    }
 
-  String? _target;
+    setState(() {
+      _stepIndex = value;
+    });
+  }
+
+  void nextStep() {
+    return goToStep(_stepIndex + 1);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: Stepper(
-        steps: getSteps(),
         type: StepperType.horizontal,
-        currentStep: _currentStep,
-        onStepContinue: () => goToStep(_currentStep += 1),
+        currentStep: _stepIndex,
+        onStepContinue: () => nextStep(),
         onStepTapped: (step) => goToStep(step),
         controlsBuilder: (context, ControlsDetails details) {
           return const Row(
             children: [],
           );
         },
+        steps: <Step>[
+          Step(
+            state: widget.controller.scan.source != null ? StepState.complete : StepState.indexed,
+            isActive: _stepIndex >= 0,
+            title: const Text('Source'),
+            content: ScanSourceView(
+              scanSuccessCallback: (String value) async {
+                await widget.controller.setSource(value);
+                goToStep(1);
+              },
+            ),
+          ),
+          Step(
+            state: widget.controller.scan.target != null ? StepState.complete : StepState.indexed,
+            isActive: _stepIndex >= 1,
+            title: const Text('Target'),
+            content: ScanTargetView(
+              scanSuccessCallback: (String value) async {
+                await widget.controller.setTarget(value);
+                goToStep(2);
+              },
+            ),
+          ),
+          Step(
+            state: StepState.indexed,
+            isActive: _stepIndex >= 2,
+            title: const Text('Result'),
+            content: ScanResultView(
+              scan: widget.controller.scan,
+              resultImage: widget.controller.diff,
+            ),
+          ),
+        ],
       ),
     );
-  }
-
-  void goToStep(int step) {
-    if (step < 0 || step > getSteps().length - 1) {
-      return;
-    }
-
-    if (step == 1 && _source == null) {
-      return;
-    }
-
-    if (step == 2 && (_source == null || _target == null)) {
-      return;
-    }
-
-    setState(() {
-      _currentStep = step;
-    });
-  }
-
-  void setSource(String? value) {
-    setState(() {
-      _source = value;
-    });
-
-    goToStep(1);
-  }
-
-  void setTarget(String? value) {
-    setState(() {
-      _target = value;
-    });
-
-
-    goToStep(2);
-  }
-
-  List<Step> getSteps() {
-    return <Step>[
-      Step(
-        state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-        isActive: _currentStep >= 0,
-        title: const Text('Source'),
-        content: ScanSourceView(
-          successCallback: (Barcode? barcode) => setSource(barcode?.displayValue),
-        ),
-      ),
-      Step(
-        state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-        isActive: _currentStep >= 1,
-        title: const Text('Target'),
-        content: ScanTargetView(
-          scanSuccessCallback: (Barcode? barcode) => setTarget(barcode?.displayValue),
-          formSuccessCallback: (Barcode? barcode) => setTarget(barcode?.displayValue),
-        ),
-      ),
-      Step(
-        state: _currentStep > 2 ? StepState.complete : StepState.indexed,
-        isActive: _currentStep >= 2,
-        title: const Text('Result'),
-        content: ScanResultView(
-          source: _source ?? '',
-          target: _target ?? '',
-        ),
-      ),
-    ];
   }
 }
