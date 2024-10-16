@@ -1,8 +1,8 @@
 # QR code diff
 
-> A mobile application to generate a "git-style" diff between two QR codes.
+<img src="https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/logo.jpg" width="100">
 
-<img src="https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/logo.jpg" width="200">
+> A mobile application to generate a "git-style" diff between two QR codes.
 
 ## Screenshots
 
