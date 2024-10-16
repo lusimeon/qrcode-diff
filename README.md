@@ -1,10 +1,14 @@
 # QR code diff
 
-A mobile application to generate diff between two QR codes.
+> A mobile application to generate a "git-style" diff between two QR codes.
 
-![QR code diff logo](https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/logo.jpg)
+<img src="https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/logo.jpg" width="200">
 
-## Getting Started
+## Screenshots
+
+<img src="https://github.com/lusimeon/qrcode-diff/blob/gh-pages/_images/qrcode_result.jpg" width="20%">
+
+## Installation
 
 ```bash
 python3.12 -m venv ./functions/venv/
