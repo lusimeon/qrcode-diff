@@ -28,7 +28,10 @@ class App extends StatelessWidget {
       ],
       onGenerateTitle: (BuildContext context) =>
           AppLocalizations.of(context)!.appTitle,
-      theme: ThemeData(),
+      theme: ThemeData(
+        colorSchemeSeed: Colors.black45,
+        fontFamily: 'Roboto',
+      ),
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.light,
       onGenerateRoute: (RouteSettings routeSettings) {

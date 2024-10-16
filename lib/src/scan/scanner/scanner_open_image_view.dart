@@ -6,12 +6,15 @@ class AnalyzeImageFromGalleryButton extends StatelessWidget {
   const AnalyzeImageFromGalleryButton({
     super.key,
     required this.controller,
+    this.onDetect,
     this.color = Colors.white,
   });
 
   final Color color;
 
   final MobileScannerController controller;
+
+  final Function(BarcodeCapture)? onDetect;
 
   @override
   Widget build(BuildContext context) {
@@ -34,21 +37,11 @@ class AnalyzeImageFromGalleryButton extends StatelessWidget {
           image.path,
         );
 
-        if (!context.mounted) {
+        if (!context.mounted || barcodes == null) {
           return;
         }
 
-        final SnackBar snackbar = barcodes != null
-            ? const SnackBar(
-                content: Text('Barcode found!'),
-                backgroundColor: Colors.green,
-              )
-            : const SnackBar(
-                content: Text('No barcode found!'),
-                backgroundColor: Colors.red,
-              );
-
-        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        onDetect!(barcodes);
       },
     );
   }

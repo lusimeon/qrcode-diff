@@ -30,7 +30,7 @@ class ScanSourceView extends StatelessWidget {
                 child: Column(
                   children: [
                     ElevatedButton(
-                      child: const Text('Source QR code'),
+                      child: const Text('Scan QR code'),
                       onPressed: () => showModalBottomView(
                         context: context,
                         title: 'Scan the QR code',
@@ -44,10 +44,9 @@ class ScanSourceView extends StatelessWidget {
                             }
 
                             Navigator.pop(context);
-
                             scanSuccessCallback(value);
                           },
-                        )
+                        ),
                       ),
                     ),
                   ],

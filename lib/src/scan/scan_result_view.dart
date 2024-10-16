@@ -40,9 +40,12 @@ class ScanResultView extends StatelessWidget {
               child: Center(
                 child: Column(
                   children: [
-                    resultImage != null
-                      ? Image.memory(resultImage!)
-                      : const CircularProgressIndicator(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: resultImage!.isNotEmpty
+                        ? Image.memory(resultImage!)
+                        : const CircularProgressIndicator(),
+                    ),
                     Table(
                       border: TableBorder.all(),
                       children: [

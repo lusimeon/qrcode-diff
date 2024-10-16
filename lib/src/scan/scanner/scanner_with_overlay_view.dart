@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qrcode_diff/src/scan/scanner/scanner_barcode_label_view.dart';
 import 'package:qrcode_diff/src/scan/scanner/scanner_open_image_view.dart';
 import 'package:qrcode_diff/src/scan/scanner/scanner_flashlight_view.dart';
 import 'package:qrcode_diff/src/scan/scanner/scanner_error_view.dart';
@@ -7,7 +8,7 @@ import 'package:qrcode_diff/src/scan/scanner/scanner_error_view.dart';
 class ScannerWithOverlay extends StatefulWidget {
   const ScannerWithOverlay({
     super.key,
-    required this.successCallback,
+    this.successCallback,
     this.backgroundColor = Colors.white,
     this.borderColor = Colors.black,
   });
@@ -16,7 +17,7 @@ class ScannerWithOverlay extends StatefulWidget {
 
   final Color borderColor;
 
-  final Function(Barcode?) successCallback;
+  final Function(Barcode?)? successCallback;
 
   @override
   ScannerWithOverlayState createState() => ScannerWithOverlayState();
@@ -63,53 +64,68 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> with SingleTicke
       center: Offset(size.width / 2, size.height / 3.5),
     );
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Center(
-          child: MobileScanner(
-            fit: BoxFit.contain,
-            controller: _scannerController,
-            scanWindow: scanWindow,
-            scanWindowUpdateThreshold: 0.5,
-            errorBuilder: (context, error, child) {
-              return ScannerErrorWidget(error: error);
-            },
-            onDetect: _handleBarcode,
-          ),
-        ),
-        ValueListenableBuilder(
-          valueListenable: _scannerController,
-          builder: (context, value, child) {
-            if (!value.isInitialized ||
-                !value.isRunning ||
-                value.error != null) {
-              return const SizedBox();
-            }
-
-            return CustomPaint(
-              painter: ScannerOverlay(
-                scanWindow: scanWindow,
-                backgroundColor: widget.backgroundColor,
-                borderColor: _successColorTween.value ?? widget.borderColor,
-              ),
-            );
-          },
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: EdgeInsets.all(size.height * 0.1),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ToggleFlashlightButton(controller: _scannerController, color: widget.borderColor),
-                AnalyzeImageFromGalleryButton(controller: _scannerController, color: widget.borderColor),
-              ],
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Center(
+            child: MobileScanner(
+              fit: BoxFit.contain,
+              controller: _scannerController,
+              scanWindow: scanWindow,
+              scanWindowUpdateThreshold: 0.5,
+              errorBuilder: (context, error, child) {
+                return ScannerErrorWidget(error: error);
+              },
+              overlayBuilder: (context, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: ScannedBarcodeLabel(barcodes: _scannerController.barcodes),
+                  ),
+                );
+              },
+              onDetect: _handleBarcode,
             ),
           ),
-        ),
-      ],
+          ValueListenableBuilder(
+            valueListenable: _scannerController,
+            builder: (context, value, child) {
+              if (!value.isInitialized ||
+                  !value.isRunning ||
+                  value.error != null) {
+                return const SizedBox();
+              }
+
+              return CustomPaint(
+                painter: ScannerOverlay(
+                  scanWindow: scanWindow,
+                  backgroundColor: widget.backgroundColor,
+                  borderColor: _successColorTween.value ?? widget.borderColor,
+                ),
+              );
+            },
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.all(size.height * 0.1),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ToggleFlashlightButton(controller: _scannerController, color: widget.borderColor),
+                  AnalyzeImageFromGalleryButton(
+                    controller: _scannerController,
+                    color: widget.borderColor,
+                    onDetect: _handleBarcode,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -135,10 +151,18 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> with SingleTicke
 
     _successAnimationController.repeat(reverse: true);
 
-    Future.delayed(const Duration(seconds: 1), () {
-      _successAnimationController.stop();
-      widget.successCallback(barcodes.barcodes.firstOrNull);
-    });
+    const snackbar = SnackBar(
+      content: Text('Barcode found!'),
+      backgroundColor: Colors.green,
+      duration: Duration(milliseconds: 500)
+    );
+
+    ScaffoldMessenger.of(context)
+      .showSnackBar(snackbar)
+      .closed.then((reason) {
+        _successAnimationController.stop();
+        widget.successCallback!(barcodes.barcodes.firstOrNull);
+      });
   }
 }
 

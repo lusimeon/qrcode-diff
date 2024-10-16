@@ -57,31 +57,49 @@ class ScanViewState extends State<ScanView> {
             state: widget.controller.scan.source != null ? StepState.complete : StepState.indexed,
             isActive: _stepIndex >= 0,
             title: const Text('Source'),
-            content: ScanSourceView(
-              scanSuccessCallback: (String value) async {
-                await widget.controller.setSource(value);
-                goToStep(1);
-              },
+            content: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ScanSourceView(
+                  scanSuccessCallback: (String value) async {
+                    await widget.controller.setSource(value);
+                    goToStep(1);
+                  },
+                ),
+              ],
             ),
           ),
           Step(
             state: widget.controller.scan.target != null ? StepState.complete : StepState.indexed,
             isActive: _stepIndex >= 1,
             title: const Text('Target'),
-            content: ScanTargetView(
-              scanSuccessCallback: (String value) async {
-                await widget.controller.setTarget(value);
-                goToStep(2);
-              },
+            content: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ScanTargetView(
+                  scanSuccessCallback: (String value) async {
+                    await widget.controller.setTarget(value);
+                    goToStep(2);
+                  },
+                ),
+              ]
             ),
           ),
           Step(
             state: StepState.indexed,
             isActive: _stepIndex >= 2,
             title: const Text('Result'),
-            content: ScanResultView(
-              scan: widget.controller.scan,
-              resultImage: widget.controller.diff,
+            content: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ScanResultView(
+                  scan: widget.controller.scan,
+                  resultImage: widget.controller.diff,
+                ),
+              ],
             ),
           ),
         ],

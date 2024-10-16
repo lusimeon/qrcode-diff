@@ -18,6 +18,8 @@ class ScanTargetView extends StatefulWidget {
 }
 
 class ScanTargetViewState extends State<ScanTargetView> {
+  bool _textInputTileExpanded = false;
+
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -68,22 +70,44 @@ class ScanTargetViewState extends State<ScanTargetView> {
                             child: const Text('or'),
                           ),
                           ExpansionTile(
-                            title: const Text('Insert a text'),
+                            textColor: Theme.of(context).colorScheme.primary,
+                            collapsedTextColor: Theme.of(context).colorScheme.primary,
+                            collapsedBackgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+                            collapsedIconColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                            ),
+                            title: const Text('Use a text'),
+                            trailing: RotatedBox(
+                              quarterTurns: _textInputTileExpanded
+                                  ? 2
+                                  : 0,
+                              child: const Icon(Icons.arrow_drop_down_circle)
+                            ),
+                            onExpansionChanged: (bool expanded) => setState(() {
+                              _textInputTileExpanded = expanded;
+                            }),
+                            childrenPadding: const EdgeInsets.all(16),
                             children: <Widget>[
-                              TextFormField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Text to compare',
-                                ),
-                                onSaved: (value) {
-                                  if (value == null) {
-                                    return;
-                                  }
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 32 ),
+                                child: TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelStyle: TextStyle(fontStyle: FontStyle.italic),
+                                    labelText: 'Insert your text…',
+                                  ),
+                                  onSaved: (value) {
+                                    if (value == null) {
+                                      return;
+                                    }
 
-                                  widget.scanSuccessCallback(value);
-                                },
+                                    widget.scanSuccessCallback(value);
+                                  },
+                                ),
                               ),
                               ElevatedButton(
-                                child: const Text('Save'),
+                                child: const Text('Process'),
                                 onPressed: () {
                                   final state = _formKey.currentState;
 

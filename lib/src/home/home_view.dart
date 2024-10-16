@@ -11,12 +11,7 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('QR Code diff'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list),
-            onPressed: () {},
-          ),
-        ],
+        actions: const [],
       ),
 
       body: Center(
