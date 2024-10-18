@@ -82,7 +82,10 @@ class ScannerWithOverlayState extends State<ScannerWithOverlay> with SingleTicke
                   padding: const EdgeInsets.all(16.0),
                   child: Align(
                     alignment: Alignment.bottomCenter,
-                    child: ScannedBarcodeLabel(barcodes: _scannerController.barcodes),
+                    child: ScannedBarcodeLabel(
+                      color: widget.borderColor,
+                      barcodes: _scannerController.barcodes
+                    ),
                   ),
                 );
               },

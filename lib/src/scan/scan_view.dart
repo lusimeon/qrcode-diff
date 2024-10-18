@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qrcode_diff/src/global/api_exception.dart';
 import 'package:qrcode_diff/src/scan/scan_controller.dart';
 import 'package:qrcode_diff/src/scan/scan_result_view.dart';
 import 'package:qrcode_diff/src/scan/scan_source_view.dart';
@@ -39,6 +41,34 @@ class ScanViewState extends State<ScanView> {
   }
 
   @override
+  void initState() {
+    widget.controller.addListener(() async {
+      if (!mounted) {
+        return;
+      }
+
+      await widget.controller.generateDiff()
+        .then((_) => goToStep(2))
+        .onError<ApiException>((error, stackTrace) {
+          if (!mounted) {
+            return;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.message ?? 'Error during processing'),
+              backgroundColor: error.type == ApiExceptionType.error
+                ? Theme.of(context).colorScheme.error
+                : Theme.of(context).colorScheme.error.withOpacity(0.5),
+            ),
+          );
+        });
+    });
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
@@ -54,7 +84,9 @@ class ScanViewState extends State<ScanView> {
         },
         steps: <Step>[
           Step(
-            state: widget.controller.scan.source != null ? StepState.complete : StepState.indexed,
+            state: widget.controller.scan.source != null
+                ? StepState.complete
+                : StepState.indexed,
             isActive: _stepIndex >= 0,
             title: const Text('Source'),
             content: Column(
@@ -62,8 +94,8 @@ class ScanViewState extends State<ScanView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 ScanSourceView(
-                  scanSuccessCallback: (String value) async {
-                    await widget.controller.setSource(value);
+                  scanSuccessCallback: (Barcode barcode) async {
+                    widget.controller.setSource(barcode);
                     goToStep(1);
                   },
                 ),
@@ -71,21 +103,21 @@ class ScanViewState extends State<ScanView> {
             ),
           ),
           Step(
-            state: widget.controller.scan.target != null ? StepState.complete : StepState.indexed,
+            state: widget.controller.scan.target != null
+                ? StepState.complete
+                : StepState.indexed,
             isActive: _stepIndex >= 1,
             title: const Text('Target'),
             content: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ScanTargetView(
-                  scanSuccessCallback: (String value) async {
-                    await widget.controller.setTarget(value);
-                    goToStep(2);
-                  },
-                ),
-              ]
-            ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ScanTargetView(
+                    scanSuccessCallback: (Barcode barcode) async {
+                      widget.controller.setTarget(barcode);
+                    },
+                  ),
+                ]),
           ),
           Step(
             state: StepState.indexed,

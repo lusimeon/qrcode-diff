@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qrcode_diff/src/scan/scan_model.dart';
 import 'package:qrcode_diff/src/scan/scan_repository.dart';
 
@@ -18,14 +19,16 @@ class ScanController extends ChangeNotifier {
 
   bool get canGenerateDiff => _scan.isReady;
 
-  Future<void> setTarget(String? value) async {
+  void setTarget(Barcode? value) {
     _scan.target = value;
-    await generateDiff();
+
+    notifyListeners();
   }
 
-  Future<void> setSource(String? value) async {
+  void setSource(Barcode? value) {
     _scan.source = value;
-    await generateDiff();
+
+    notifyListeners();
   }
 
   Future<void> generateDiff() async {
@@ -33,10 +36,8 @@ class ScanController extends ChangeNotifier {
       return;
     }
 
-    final res = await _scanRepository.getDiff(_scan);
+    final res = await _scanRepository.computeDiff(_scan);
 
     _diff = base64Decode(res);
-
-    notifyListeners();
   }
 }

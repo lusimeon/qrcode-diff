@@ -9,7 +9,7 @@ class ScanTargetView extends StatefulWidget {
     required this.scanSuccessCallback,
   });
 
-  final Function(String) scanSuccessCallback;
+  final Function(Barcode) scanSuccessCallback;
 
   @override
   ScanTargetViewState createState() {
@@ -52,7 +52,11 @@ class ScanTargetViewState extends State<ScanTargetView> {
                               body: ScannerWithOverlay(
                                 backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
                                 successCallback: (Barcode? barcode) {
-                                  final value = barcode?.displayValue;
+                                  if (barcode == null) {
+                                    return;
+                                  }
+
+                                  final value = barcode.displayValue;
 
                                   if (value == null) {
                                     return;
@@ -60,7 +64,7 @@ class ScanTargetViewState extends State<ScanTargetView> {
 
                                   Navigator.pop(context);
 
-                                  widget.scanSuccessCallback(value);
+                                  widget.scanSuccessCallback(barcode);
                                 },
                               ),
                             ),
@@ -102,7 +106,9 @@ class ScanTargetViewState extends State<ScanTargetView> {
                                       return;
                                     }
 
-                                    widget.scanSuccessCallback(value);
+                                    widget.scanSuccessCallback(
+                                      Barcode(displayValue: value)
+                                    );
                                   },
                                 ),
                               ),

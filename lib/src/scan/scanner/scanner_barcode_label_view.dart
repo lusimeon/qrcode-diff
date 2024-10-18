@@ -5,7 +5,10 @@ class ScannedBarcodeLabel extends StatelessWidget {
   const ScannedBarcodeLabel({
     super.key,
     required this.barcodes,
+    this.color = Colors.white,
   });
+
+  final Color color;
 
   final Stream<BarcodeCapture> barcodes;
 
@@ -17,17 +20,17 @@ class ScannedBarcodeLabel extends StatelessWidget {
         final scannedBarcodes = snapshot.data?.barcodes ?? [];
 
         if (scannedBarcodes.isEmpty) {
-          return const Text(
+          return Text(
             'Scan something!',
             overflow: TextOverflow.fade,
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: color),
           );
         }
 
         return Text(
           scannedBarcodes.first.displayValue ?? 'No display value.',
           overflow: TextOverflow.fade,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: color),
         );
       },
     );

@@ -6,7 +6,7 @@ class ScanRepository {
 
   final ScanService _scanService = ScanService();
 
-  Future<String> getDiff(ScanModel model) async {
+  Future<String> computeDiff(ScanModel model) async {
     final source = model.source;
     final target = model.target;
 

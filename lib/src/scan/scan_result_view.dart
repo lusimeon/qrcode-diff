@@ -16,9 +16,9 @@ class ScanResultView extends StatelessWidget {
 
   List<Map<String, dynamic>> getRows() {
     return [
-      {'label': 'Source', 'value': scan.source, },
-      {'label': 'Target', 'value': scan.target, },
-      {'label': 'Same?', 'value': scan.target == scan.source ? 'Same' : 'Not same', }
+      {'label': 'Source', 'value': scan.source?.displayValue, },
+      {'label': 'Target', 'value': scan.target?.displayValue, },
+      {'label': 'Same?', 'value': scan.target?.displayValue == scan.source?.displayValue ? 'Same' : 'Not same', }
     ];
   }
 

@@ -9,7 +9,7 @@ class ScanSourceView extends StatelessWidget {
     required this.scanSuccessCallback,
   });
 
-  final Function(String) scanSuccessCallback;
+  final Function(Barcode) scanSuccessCallback;
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +37,18 @@ class ScanSourceView extends StatelessWidget {
                         body: ScannerWithOverlay(
                           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
                           successCallback: (Barcode? barcode) {
-                            final value = barcode?.displayValue;
+                            if (barcode == null) {
+                              return;
+                            }
+
+                            final value = barcode.displayValue;
 
                             if (value == null) {
                               return;
                             }
 
                             Navigator.pop(context);
-                            scanSuccessCallback(value);
+                            scanSuccessCallback(barcode);
                           },
                         ),
                       ),
